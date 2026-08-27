@@ -6,7 +6,7 @@
  * Never import neo4j or CognoDB anything here.
  */
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 async function request(path) {
   try {
