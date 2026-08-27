@@ -27,31 +27,31 @@ def main():
     with open(seed_path, "r", encoding="utf-8") as f:
         content = f.read()
         
-    # Split queries by newline or use a basic parser. Since MERGE statements don't use semicolons,
-    # we can split by newline and filter out comments. Let's make sure we execute each line or construct
-    # one single transaction with all MERGE commands. Doing one multi-line statement is highly efficient in Cypher!
-    # Let's filter out lines that are comments or empty.
-    cleaned_lines = []
-    for line in content.split("\n"):
-        stripped = line.strip()
-        if stripped and not stripped.startswith("//"):
-            cleaned_lines.append(stripped)
+    # Split queries by semicolon and strip comments/empty statements
+    queries = []
+    for statement in content.split(";"):
+        cleaned_statement_lines = []
+        for line in statement.split("\n"):
+            stripped = line.strip()
+            if stripped and not stripped.startswith("//"):
+                cleaned_statement_lines.append(line)
+        cleaned_statement = "\n".join(cleaned_statement_lines).strip()
+        if cleaned_statement:
+            queries.append(cleaned_statement)
             
-    query = "\n".join(cleaned_lines)
-    
-    if not query:
+    if not queries:
         print("No statements found to seed.")
         sys.exit(0)
         
-    print(f"Connecting to database to execute seed query...")
+    print(f"Connecting to database to execute {len(queries)} seed queries...")
     
     driver = None
     try:
         driver = GraphDatabase.driver(uri, auth=(username, password))
         with driver.session() as session:
-            # First, optional check: show current node counts
-            print("Running seeding transaction...")
-            session.run(query)
+            print("Running seeding transactions...")
+            for idx, query in enumerate(queries, 1):
+                session.run(query)
             print("Database seeded successfully.")
             
             # Let's count the nodes of each type to verify
