@@ -1,6 +1,12 @@
 # SkillPath
 
-SkillPath is a graph-driven career learning path explorer that models technical skills, prerequisite relationships, career roles, courses, and projects as a connected graph network stored in CognoDB Cloud.
+SkillPath is a graph-driven career learning path explorer built with CognoDB Cloud.
+
+It helps users answer a simple question:
+
+> **"What should I learn before I learn this, and where can it lead me?"**
+
+Instead of treating skills as isolated records, SkillPath models the relationships between skills, career roles, courses, and projects. This allows users to explore prerequisite chains, discover related skills, understand career requirements, and find learning paths between technologies.
 
 ---
 
@@ -229,6 +235,39 @@ The graph is validated using `backend/scripts/verify_graph.py`, enforcing relati
 
 ### Paths
 - `GET /api/paths?from={source_id}&to={target_id}`: Shortest prerequisite path, node sequence, directed edges, and graph depth metrics.
+
+---
+
+## 🔍 Key Graph Queries
+
+### Multi-Hop Prerequisite Traversal
+The prerequisite query traverses the `PREREQUISITE_OF` relationship across multiple hops to discover the dependency chain required to reach a skill.
+
+Example:
+```text
+Programming Fundamentals → JavaScript → DOM Manipulation → React
+```
+This is implemented using variable-length Cypher traversal (`-[:PREREQUISITE_OF*1..5]->`) rather than manually joining relational tables.
+
+### Shortest Learning Path
+The learning-path query finds the shortest directed prerequisite path between two skills (`shortestPath((start)-[:PREREQUISITE_OF*1..10]->(target))`).
+
+For example:
+```text
+Programming Fundamentals → JavaScript → DOM Manipulation → React
+```
+The API returns the ordered nodes, relationships, and path depth metrics (`4 skills · 3 prerequisite links`).
+
+### Role Prerequisite Graph
+For a career role, SkillPath first identifies its required skills through `REQUIRES` relationships and then traverses their prerequisite chains (`(r:Role)-[:REQUIRES]->(req:Skill)<-[:PREREQUISITE_OF*0..5]-(prereq)`).
+
+This exposes dependencies that are several relationships away from the role itself.
+
+### Related Skills
+`RELATED_TO` relationships allow the application to discover complementary or alternative technologies (`(s:Skill)-[:RELATED_TO]-(other:Skill)`) without treating them as strict prerequisites.
+
+### Why these queries benefit from a graph
+These queries depend on following relationships across multiple hops. In a relational schema, the same operations would require combinations of JOINs and recursive queries. In SkillPath, the relationships are directly represented as graph edges and traversed using Cypher.
 
 ---
 
