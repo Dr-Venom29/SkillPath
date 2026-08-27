@@ -4,6 +4,18 @@ SkillPath is a graph-driven career learning path explorer that models technical 
 
 ---
 
+## 🌐 Live Demo
+
+**Application:** https://skillpath-demo.netlify.app/  
+**Backend API:** https://skillpath-api-o1bl.onrender.com/
+
+The frontend is hosted on Netlify and communicates with the FastAPI backend hosted on Render. The backend connects to CognoDB Cloud for graph storage.
+
+The backend health endpoint can be used to verify live database connectivity:
+`GET /api/health` $\rightarrow$ `{"status": "healthy", "database": "connected"}`
+
+---
+
 ## ✨ Features
 
 - **Skill Search**: Case-insensitive search across technical skills.
@@ -44,6 +56,28 @@ CognoDB Cloud (Graph Storage)
 
 ## 📊 Graph Model
 
+### Why a Graph Database?
+
+SkillPath is fundamentally about relationships between skills rather than isolated records.
+
+A relational database could represent the same entities, but multi-hop prerequisite traversal and relationship-heavy questions would typically require joins and recursive CTEs. In SkillPath, these traversals are directly represented by graph relationships and queried with Cypher.
+
+```text
+Programming Fundamentals
+        ↓
+    JavaScript
+        ↓
+ DOM Manipulation
+        ↓
+      React
+        ↓
+ State Management
+```
+
+The graph model makes multi-hop traversal and relationship-driven exploration the core engine of the application rather than an additional layer built on top of relational tables.
+
+---
+
 ### Node Types
 - `Skill`: `id`, `name`, `description`, `level` (`Beginner`, `Intermediate`, `Advanced`)
 - `Role`: `id`, `name`, `description`
@@ -63,6 +97,43 @@ CognoDB Cloud (Graph Storage)
 - `TEACHES`: A course provides structured educational instruction for a skill.
 - `BUILDS`: A project offers practical hands-on application demonstrating a skill.
 - `RELATED_TO`: Complementary or alternative skills without prerequisite ordering.
+
+---
+
+### Graph Model Diagram
+
+```mermaid
+graph LR
+    PF["Skill: Programming Fundamentals"]
+    JS["Skill: JavaScript"]
+    DOM["Skill: DOM Manipulation"]
+    React["Skill: React"]
+    SM["Skill: State Management"]
+
+    Role["Role: Frontend Developer"]
+    Course["Course"]
+    Project["Project"]
+
+    PF -->|PREREQUISITE_OF| JS
+    JS -->|PREREQUISITE_OF| DOM
+    DOM -->|PREREQUISITE_OF| React
+    React -->|PREREQUISITE_OF| SM
+
+    Role -->|REQUIRES| JS
+    Role -->|REQUIRES| React
+
+    Course -->|TEACHES| React
+    Project -->|BUILDS| React
+```
+
+**Core Graph Pattern:**
+```text
+Skill  ──PREREQUISITE_OF──→ Skill
+Role   ──REQUIRES─────────→ Skill
+Course ──TEACHES─────────→ Skill
+Project──BUILDS──────────→ Skill
+Skill  ──RELATED_TO──────── Skill
+```
 
 ---
 
@@ -122,6 +193,34 @@ A user can:
    (4 skills · 3 prerequisite links)
    ```
 7. Toggle to **Graph Diagram** view to interact with the visual node-edge diagram.
+
+---
+
+## 🖥️ UI Screenshots
+
+### Home — Skill Search
+
+The SkillPath home page provides skill search, popular career roles, and direct access to the learning-path explorer.
+
+![SkillPath Home](screenshots/home.png)
+
+### Skill Details & Prerequisites
+
+The skill details page combines prerequisite exploration, career-role usage, courses, projects, and next recommended skills.
+
+![Skill Details](screenshots/skill-details.png)
+
+### Learning Path Explorer
+
+The learning-path explorer calculates the shortest prerequisite path between two skills and provides both a step sequence and interactive graph visualization.
+
+![Learning Path](screenshots/learning-path.png)
+
+### Career Role Explorer
+
+The role explorer shows the core skills required for a career role and the prerequisite dependencies behind those requirements.
+
+![Role Details](screenshots/role-explorer.png)
 
 ---
 
@@ -205,6 +304,7 @@ SkillPath/
 ├── .env.example
 ├── .gitignore
 ├── README.md
+├── requirements.txt
 ├── backend/
 │   ├── app/
 │   │   ├── main.py
@@ -238,10 +338,17 @@ SkillPath/
 │   ├── role_skills.cypher
 │   ├── related_skills.cypher
 │   └── next_skills.cypher
+├── screenshots/
+│   ├── home.png
+│   ├── skill-details.png
+│   ├── learning-path.png
+│   └── role-explorer.png
 └── frontend/
     ├── index.html
     ├── package.json
     ├── vite.config.js
+    ├── public/
+    │   └── _redirects
     └── src/
         ├── main.jsx
         ├── App.jsx
