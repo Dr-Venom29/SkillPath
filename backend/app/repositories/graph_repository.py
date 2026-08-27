@@ -147,6 +147,18 @@ def get_related_skills(skill_id: str) -> List[Dict[str, Any]]:
 # Roles
 # ---------------------------------------------------------------------------
 
+def list_roles() -> List[Dict[str, Any]]:
+    """Return all roles in the graph."""
+    cypher = """
+        MATCH (r:Role)
+        RETURN
+            r.id          AS id,
+            r.name        AS name,
+            r.description AS description
+        ORDER BY r.name
+    """
+    return _run_read(cypher)
+
 def get_role_requirements(role_id: str) -> List[Dict[str, Any]]:
     """Return skills directly required by a role.
 
