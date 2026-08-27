@@ -11,8 +11,39 @@ SkillPath is a graph-driven career learning path explorer that models technical 
 
 The frontend is hosted on Netlify and communicates with the FastAPI backend hosted on Render. The backend connects to CognoDB Cloud for graph storage.
 
-The backend health endpoint can be used to verify live database connectivity:
+The backend health endpoint can be used to verify live database connectivity:  
 `GET /api/health` $\rightarrow$ `{"status": "healthy", "database": "connected"}`
+
+---
+
+## 🎥 Demo Video
+
+A short screen recording demonstrating the SkillPath application, including skill search, prerequisite exploration, learning-path discovery, graph visualization, and career-role exploration.
+
+[Watch the SkillPath Demo](https://drive.google.com/file/d/1wiNbRB9UA4K5Zsf76z9mLwjcAfCbPFlE/view?usp=sharing)
+
+---
+
+## 💡 Why SkillPath?
+
+Learning a technical skill is rarely an isolated process. Skills depend on other skills, career roles require combinations of skills, and courses and projects provide different ways to build those skills.
+
+SkillPath models these connections explicitly so users can explore not only **what to learn**, but also **what comes before it, where it leads, and how it connects to a career goal**.
+
+The project was designed specifically around these relationships, making a graph database a natural fit for the problem.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, React Router |
+| Backend | FastAPI, Python 3.10+ |
+| Graph Database | CognoDB Cloud |
+| Database Driver | Neo4j Python Driver (shared application driver) |
+| Query Language | openCypher |
+| Deployment | Netlify (Frontend) + Render (Backend) |
 
 ---
 
@@ -31,6 +62,34 @@ The backend health endpoint can be used to verify live database connectivity:
 - **Responsive Layout**: Designed for Desktop, Tablet (768px), and Mobile (480px) viewports with zero horizontal overflow.
 - **Graph Semantic Validation**: Automated validation for schema constraints, cycle detection, orphan detection, duplicate edges, and reachability.
 - **Graceful Failure Handling**: Clean API error handling without exposing database tracebacks or raw 500 exceptions.
+
+---
+
+## 🖥️ UI Screenshots
+
+### Home — Skill Search
+
+The SkillPath home page provides skill search, popular career roles, and direct access to the learning-path explorer.
+
+![SkillPath Home](screenshots/home.png)
+
+### Skill Details & Prerequisites
+
+The skill details page combines prerequisite exploration, career-role usage, courses, projects, and next recommended skills.
+
+![Skill Details](screenshots/skill-details.png)
+
+### Learning Path Explorer
+
+The learning-path explorer calculates the shortest prerequisite path between two skills and provides both a step sequence and interactive graph visualization.
+
+![Learning Path](screenshots/learning-path.png)
+
+### Career Role Explorer
+
+The role explorer shows the core skills required for a career role and the prerequisite dependencies behind those requirements.
+
+![Role Details](screenshots/role-explorer.png)
 
 ---
 
@@ -58,23 +117,17 @@ CognoDB Cloud (Graph Storage)
 
 ### Why a Graph Database?
 
-SkillPath is fundamentally about relationships between skills rather than isolated records.
+The core questions in SkillPath are relationship-driven:
 
-A relational database could represent the same entities, but multi-hop prerequisite traversal and relationship-heavy questions would typically require joins and recursive CTEs. In SkillPath, these traversals are directly represented by graph relationships and queried with Cypher.
+- What skills are prerequisites for this skill?
+- What skills does a career role require?
+- What is the learning path between two skills?
+- Which courses and projects are connected to a skill?
+- What skills become reachable after learning a particular skill?
 
-```text
-Programming Fundamentals
-        ↓
-    JavaScript
-        ↓
- DOM Manipulation
-        ↓
-      React
-        ↓
- State Management
-```
+These relationships form a connected dependency graph. In a relational design, multi-hop prerequisite queries would typically require joins and recursive CTEs. In CognoDB, they can be expressed directly as graph traversals using Cypher.
 
-The graph model makes multi-hop traversal and relationship-driven exploration the core engine of the application rather than an additional layer built on top of relational tables.
+For SkillPath, the graph is therefore not just a storage choice—it is the basis of the application's core functionality.
 
 ---
 
@@ -196,34 +249,6 @@ A user can:
 
 ---
 
-## 🖥️ UI Screenshots
-
-### Home — Skill Search
-
-The SkillPath home page provides skill search, popular career roles, and direct access to the learning-path explorer.
-
-![SkillPath Home](screenshots/home.png)
-
-### Skill Details & Prerequisites
-
-The skill details page combines prerequisite exploration, career-role usage, courses, projects, and next recommended skills.
-
-![Skill Details](screenshots/skill-details.png)
-
-### Learning Path Explorer
-
-The learning-path explorer calculates the shortest prerequisite path between two skills and provides both a step sequence and interactive graph visualization.
-
-![Learning Path](screenshots/learning-path.png)
-
-### Career Role Explorer
-
-The role explorer shows the core skills required for a career role and the prerequisite dependencies behind those requirements.
-
-![Role Details](screenshots/role-explorer.png)
-
----
-
 ## 🚀 Local Setup
 
 ### Prerequisites
@@ -242,8 +267,6 @@ COGNODB_PASSWORD=your_secure_password_here
 API_HOST=127.0.0.1
 API_PORT=8000
 ```
-
-> **Security Note**: Never commit `.env` or real CognoDB credentials to version control.
 
 ---
 
@@ -375,15 +398,15 @@ SkillPath/
 
 ## 🔐 Security
 
-Verify that `.env` is ignored by Git:
+- CognoDB credentials are loaded strictly from environment variables.
+- `.env` is excluded from version control via `.gitignore`.
+- `.env.example` contains placeholders only.
+- No database credentials are committed to the repository.
+
+To verify that `.env` is excluded from version control:
 ```bash
 git check-ignore .env
 # Expected output: .env
-```
-
-Search tracked files for secret leaks:
-```bash
-git ls-files
 ```
 
 ---
@@ -399,8 +422,8 @@ The final integration test suite passes completely:
 
 ---
 
-## 🧊 Project Status
+## 📌 Project Status
 
-**Complete and frozen.**
+The assignment implementation is complete and the current version is the final submission build.
 
-The current implementation focuses on graph-based skill discovery, prerequisite exploration, career-role requirements, and learning-path visualization.
+The application, graph dataset, validation suite, deployment, documentation, and demo have been verified end-to-end.
