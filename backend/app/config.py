@@ -7,7 +7,10 @@ Only the required CognoDB credentials (and optional API settings) are exposed.
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    from pydantic import BaseSettings
 from pydantic import Field
 
 # Load .env from project root (two levels up from this file)
