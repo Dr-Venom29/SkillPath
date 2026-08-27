@@ -6,11 +6,11 @@
  * Never import neo4j or CognoDB anything here.
  */
 
-const BASE = '/api';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 async function request(path) {
   try {
-    const res = await fetch(`${BASE}${path}`);
+    const res = await fetch(`${API_BASE_URL}${path}`);
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
