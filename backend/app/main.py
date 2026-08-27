@@ -1,16 +1,37 @@
 """
 FastAPI application entry point.
 Registers routes, manages the Neo4j driver lifecycle,
-and handles global error responses.
+handles CORS permissions, and manages global error responses.
 """
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .db.driver import create_driver, close_driver, verify_connection
 from .routes import health, skills, roles, paths
 
 app = FastAPI(title="SkillPath API", version="0.1.0")
+
+# ---------------------------------------------------------------------------
+# CORS Configuration – Allow production Netlify frontend and local dev
+# ---------------------------------------------------------------------------
+
+allow_origins = [
+    "https://skillpath-demo.netlify.app",
+    "http://localhost:5174",
+    "http://localhost:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Include routers
 app.include_router(health.router, prefix="/api")
