@@ -8,15 +8,22 @@ exceptions to HTTP status codes.  Contains no business logic.
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 from ..services.skill_service import (
+    list_skills,
     search_skills,
     get_skill_details,
     get_prerequisites,
     get_prerequisite_chain,
     get_related_skills,
+    get_next_skills,
     SkillNotFoundError,
 )
 
 router = APIRouter()
+
+
+@router.get("/skills")
+async def get_all_skills():
+    return list_skills()
 
 
 @router.get("/skills/search")
@@ -57,5 +64,16 @@ async def skill_related(skill_id: str):
 async def skill_chain(skill_id: str):
     try:
         return get_prerequisite_chain(skill_id)
+    except SkillNotFoundError:
+        return JSONResponse(status_code=404, content={"error": f"Skill '{skill_id}' not found"})
+
+
+@router.get("/skills/{skill_id}/next")
+async def skill_next(skill_id: str):
+    try:
+        return {
+            "skill": skill_id,
+            "nextSkills": get_next_skills(skill_id)
+        }
     except SkillNotFoundError:
         return JSONResponse(status_code=404, content={"error": f"Skill '{skill_id}' not found"})

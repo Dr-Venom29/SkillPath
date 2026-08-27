@@ -4,8 +4,8 @@ from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
 def main():
-    # 1. Read environment variables from backend/.env
-    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    # Read environment variables from project root .env
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
     if not os.path.exists(env_path):
         print(f"Error: {env_path} does not exist.")
         sys.exit(1)

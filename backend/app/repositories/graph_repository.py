@@ -142,12 +142,30 @@ def get_related_skills(skill_id: str) -> List[Dict[str, Any]]:
     Mirrors: cypher/related_skills.cypher
     """
     cypher = """
-        MATCH (s:Skill {id: $skill_id})-[:RELATED_TO]-(r:Skill)
+        MATCH (s:Skill {id: $skill_id})-[r:RELATED_TO]-(other:Skill)
         RETURN
-            r.id    AS id,
-            r.name  AS name,
-            r.level AS level
-        ORDER BY r.name
+            other.id          AS id,
+            other.name        AS name,
+            other.description AS description,
+            other.level       AS level
+        ORDER BY other.name
+    """
+    return _run_read(cypher, {"skill_id": skill_id})
+
+
+def get_next_skills(skill_id: str) -> List[Dict[str, Any]]:
+    """Return skills that directly list this skill as a prerequisite.
+
+    Mirrors: cypher/next_skills.cypher
+    """
+    cypher = """
+        MATCH (s:Skill {id: $skill_id})-[:PREREQUISITE_OF]->(next:Skill)
+        RETURN
+            next.id          AS id,
+            next.name        AS name,
+            next.description AS description,
+            next.level       AS level
+        ORDER BY next.name
     """
     return _run_read(cypher, {"skill_id": skill_id})
 

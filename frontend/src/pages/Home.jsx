@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { searchSkills, listRoles } from '../services/api';
+import { searchSkills, listRoles, listSkills } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import SkillCard from '../components/SkillCard';
 import LoadingState from '../components/LoadingState';
@@ -12,13 +12,14 @@ export default function Home() {
   const query = searchParams.get('q') || '';
 
   const [skills, setSkills] = useState([]);
+  const [allSkills, setAllSkills] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Inline path finder state
-  const [fromId, setFromId] = useState('');
-  const [toId, setToId] = useState('');
+  const [fromId, setFromId] = useState('css');
+  const [toId, setToId] = useState('css-animations');
 
   useEffect(() => {
     if (!query) { setSkills([]); return; }
@@ -32,6 +33,7 @@ export default function Home() {
 
   useEffect(() => {
     listRoles().then(setRoles).catch(() => {});
+    listSkills().then(setAllSkills).catch(() => {});
   }, []);
 
   function handlePathSubmit(e) {
@@ -60,7 +62,7 @@ export default function Home() {
       <SearchBar initialQuery={query} />
 
       {/* Search results */}
-      {loading && <LoadingState message="Searching..." />}
+      {loading && <LoadingState message="Searching skills..." />}
       {error && <ErrorState message={error} />}
 
       {!loading && !error && query && (
@@ -70,10 +72,14 @@ export default function Home() {
               ? `No skills found for "${query}"`
               : `${skills.length} result${skills.length !== 1 ? 's' : ''} for "${query}"`}
           </h2>
-          {skills.length > 0 && (
+          {skills.length > 0 ? (
             <div className="skill-grid">
               {skills.map((s) => <SkillCard key={s.id} skill={s} />)}
             </div>
+          ) : (
+            <p className="empty-state">
+              No skills found for "{query}". Try searching for another skill like Python, React, or SQL.
+            </p>
           )}
         </section>
       )}
@@ -103,25 +109,49 @@ export default function Home() {
               <div className="form-row">
                 <label>
                   Starting skill
-                  <input
-                    type="text"
-                    value={fromId}
-                    onChange={(e) => setFromId(e.target.value)}
-                    placeholder="e.g. prog-fundamentals"
-                  />
+                  {allSkills.length > 0 ? (
+                    <select value={fromId} onChange={(e) => setFromId(e.target.value)}>
+                      <option value="">Select starting skill...</option>
+                      {allSkills.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.level})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={fromId}
+                      onChange={(e) => setFromId(e.target.value)}
+                      placeholder="e.g. python"
+                    />
+                  )}
                 </label>
+
                 <span className="form-arrow">→</span>
+
                 <label>
                   Target skill
-                  <input
-                    type="text"
-                    value={toId}
-                    onChange={(e) => setToId(e.target.value)}
-                    placeholder="e.g. react"
-                  />
+                  {allSkills.length > 0 ? (
+                    <select value={toId} onChange={(e) => setToId(e.target.value)}>
+                      <option value="">Select target skill...</option>
+                      {allSkills.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.level})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value={toId}
+                      onChange={(e) => setToId(e.target.value)}
+                      placeholder="e.g. react"
+                    />
+                  )}
                 </label>
               </div>
-              <button type="submit">Find Path</button>
+              <button type="submit" disabled={!fromId || !toId}>Find Path</button>
             </form>
           </section>
         </>

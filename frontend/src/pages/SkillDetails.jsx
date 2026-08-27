@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getSkillDetails, getPrerequisites } from '../services/api';
+import { getSkillDetails, getPrerequisites, getNextSkills } from '../services/api';
 import SkillCard from '../components/SkillCard';
 import SkillGraph from '../components/SkillGraph';
 import LoadingState from '../components/LoadingState';
@@ -10,28 +10,37 @@ export default function SkillDetails() {
   const { skillId } = useParams();
   const [skill, setSkill] = useState(null);
   const [prereqs, setPrereqs] = useState(null);
+  const [nextSkills, setNextSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
-    Promise.all([getSkillDetails(skillId), getPrerequisites(skillId)])
-      .then(([s, p]) => { setSkill(s); setPrereqs(p); })
+    Promise.all([
+      getSkillDetails(skillId),
+      getPrerequisites(skillId),
+      getNextSkills(skillId).catch(() => ({ nextSkills: [] })),
+    ])
+      .then(([s, p, n]) => {
+        setSkill(s);
+        setPrereqs(p);
+        setNextSkills(n.nextSkills || []);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [skillId]);
 
-  if (loading) return <LoadingState message="Loading skill..." />;
-  if (error) return <ErrorState message={error} />;
-  if (!skill) return <ErrorState message="Skill not found." />;
+  if (loading) return <LoadingState message="Loading skill details..." />;
+  if (error) return <ErrorState title="Skill not found" message={error} />;
+  if (!skill) return <ErrorState title="Skill not found" message="Skill not found. Try searching for Python, React, or SQL." />;
 
   const hasPrereqs = prereqs && prereqs.direct.length > 0;
   const hasChain = prereqs && prereqs.chain.length > 0;
+  const hasNext = nextSkills && nextSkills.length > 0;
   const hasRelated = skill.related && skill.related.length > 0;
   const hasCourses = skill.courses && skill.courses.length > 0;
   const hasProjects = skill.projects && skill.projects.length > 0;
-  const hasDependents = skill.dependents && skill.dependents.length > 0;
   const hasRoles = skill.roles && skill.roles.length > 0;
 
   return (
@@ -67,6 +76,18 @@ export default function SkillDetails() {
         </section>
       )}
 
+      {/* Next Recommended Skills */}
+      {hasNext && (
+        <section className="detail-section">
+          <h2>Next Recommended Skills</h2>
+          <p className="section-sub">Skills that directly build upon {skill.name}:</p>
+          <div className="divider" />
+          <div className="skill-grid">
+            {nextSkills.map((s) => <SkillCard key={s.id} skill={s} />)}
+          </div>
+        </section>
+      )}
+
       {/* Used by Roles */}
       {hasRoles && (
         <section className="detail-section">
@@ -86,7 +107,7 @@ export default function SkillDetails() {
       {/* Courses */}
       {hasCourses && (
         <section className="detail-section">
-          <h2>Courses</h2>
+          <h2>Courses Teaching This Skill</h2>
           <div className="divider" />
           <ul className="resource-list">
             {skill.courses.map((c) => (
@@ -102,7 +123,7 @@ export default function SkillDetails() {
       {/* Projects */}
       {hasProjects && (
         <section className="detail-section">
-          <h2>Projects</h2>
+          <h2>Projects Building This Skill</h2>
           <div className="divider" />
           <ul className="resource-list">
             {skill.projects.map((p) => (
@@ -118,21 +139,10 @@ export default function SkillDetails() {
       {/* Related Skills */}
       {hasRelated && (
         <section className="detail-section">
-          <h2>Related Skills</h2>
+          <h2>Related / Complementary Skills</h2>
           <div className="divider" />
           <div className="skill-grid">
             {skill.related.map((s) => <SkillCard key={s.id} skill={s} />)}
-          </div>
-        </section>
-      )}
-
-      {/* Unlocks */}
-      {hasDependents && (
-        <section className="detail-section">
-          <h2>Unlocks</h2>
-          <div className="divider" />
-          <div className="skill-grid">
-            {skill.dependents.map((s) => <SkillCard key={s.id} skill={s} />)}
           </div>
         </section>
       )}

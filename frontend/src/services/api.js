@@ -9,19 +9,37 @@
 const BASE = '/api';
 
 async function request(path) {
-  const res = await fetch(`${BASE}${path}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${BASE}${path}`);
+    const data = await res.json().catch(() => ({}));
 
-  if (!res.ok) {
-    const error = new Error(data.error || `Request failed: ${res.status}`);
-    error.status = res.status;
+    if (!res.ok) {
+      const isServerError = res.status >= 500;
+      const cleanMessage = isServerError
+        ? "We couldn't reach the learning graph. Please try again."
+        : data.error || `Request failed (${res.status})`;
+
+      const error = new Error(cleanMessage);
+      error.status = res.status;
+      throw error;
+    }
+
+    return data;
+  } catch (err) {
+    if (err.status && err.status < 500) {
+      throw err;
+    }
+    const error = new Error("We couldn't reach the learning graph. Please try again.");
+    error.status = err.status || 500;
     throw error;
   }
-
-  return data;
 }
 
 // --- Skills ---
+
+export function listSkills() {
+  return request('/skills');
+}
 
 export function searchSkills(query, limit = 25) {
   return request(`/skills/search?q=${encodeURIComponent(query)}&limit=${limit}`);
@@ -41,6 +59,10 @@ export function getRelatedSkills(skillId) {
 
 export function getPrerequisiteChain(skillId) {
   return request(`/skills/${encodeURIComponent(skillId)}/chain`);
+}
+
+export function getNextSkills(skillId) {
+  return request(`/skills/${encodeURIComponent(skillId)}/next`);
 }
 
 // --- Roles ---
