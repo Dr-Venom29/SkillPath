@@ -30,6 +30,15 @@ def _run_read(query: str, parameters: Optional[Dict[str, Any]] = None) -> List[D
 # Skills
 # ---------------------------------------------------------------------------
 
+def list_skills() -> List[Dict[str, Any]]:
+    """Return all skills (id + name), ordered by name."""
+    cypher = """
+        MATCH (s:Skill)
+        RETURN s.id AS id, s.name AS name, s.level AS level
+        ORDER BY s.name
+    """
+    return _run_read(cypher)
+
 def search_skills(query: str, limit: int = 25) -> List[Dict[str, Any]]:
     """Search skills by name (case-insensitive substring match).
 
